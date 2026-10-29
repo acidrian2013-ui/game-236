@@ -37,9 +37,10 @@ export default function App() {
     return DEFAULT_GAMES;
   });
 
-  // Fetch /games.json if available
+  // Fetch games.json if available
   useEffect(() => {
-    fetch('/games.json')
+    const jsonUrl = (import.meta.env.BASE_URL || './').replace(/\/$/, '') + '/games.json';
+    fetch(jsonUrl)
       .then(res => {
         if (!res.ok) throw new Error('Network error');
         return res.json();
