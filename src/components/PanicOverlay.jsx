@@ -1,8 +1,8 @@
 import React from 'react';
-import { FileText, ArrowLeft, Search } from 'lucide-react';
+import { FileText, ArrowLeft, Search, ExternalLink } from 'lucide-react';
 import { playUiSound } from '../utils/audio.js';
 
-export const PanicOverlay = ({ onDismiss, panicKey }) => {
+export const PanicOverlay = ({ onDismiss, panicKey, panicUrl }) => {
   return (
     <div className="fixed inset-0 z-50 bg-[#f8f9fa] text-[#202124] flex flex-col font-sans select-none">
       {/* Top Bar resembling Google Docs / Workspace */}
@@ -28,11 +28,25 @@ export const PanicOverlay = ({ onDismiss, panicKey }) => {
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
-          <div className="hidden sm:flex items-center gap-2 bg-gray-100 px-3 py-1.5 rounded-full text-xs text-gray-600">
+        <div className="flex items-center gap-2.5">
+          <div className="hidden md:flex items-center gap-2 bg-gray-100 px-3 py-1.5 rounded-full text-xs text-gray-600">
             <Search className="w-3.5 h-3.5 text-gray-400" />
             <span>Search document...</span>
           </div>
+
+          {panicUrl && (
+            <a
+              href={panicUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-medium rounded-md transition-colors"
+              title="Open classroom/real site in new tab"
+            >
+              <ExternalLink className="w-3.5 h-3.5 text-gray-500" />
+              <span>Open Class (New Tab)</span>
+            </a>
+          )}
+
           <button
             onClick={() => { playUiSound('action'); onDismiss(); }}
             title={`Return to games (or press ${panicKey})`}
@@ -48,7 +62,7 @@ export const PanicOverlay = ({ onDismiss, panicKey }) => {
       <div className="flex-1 bg-[#f1f3f4] overflow-y-auto p-4 md:p-8 flex justify-center">
         <div className="w-full max-w-3xl bg-white min-h-[900px] shadow-sm border border-gray-300 rounded p-12 text-sm leading-relaxed text-gray-800 font-serif">
           <h1 className="text-2xl font-bold font-sans text-gray-900 mb-4 pb-2 border-b border-gray-200">
-            Chapter 4: Principles of Cellular Respiration & ATP Synthesis
+            Chapter 4: Principles of Cellular Respiration &amp; ATP Synthesis
           </h1>
 
           <p className="mb-4">
@@ -68,7 +82,7 @@ export const PanicOverlay = ({ onDismiss, panicKey }) => {
           </ul>
 
           <h2 className="text-lg font-semibold font-sans text-gray-900 mt-6 mb-2">
-            2. The Citric Acid Cycle & Electron Transport Chain
+            2. The Citric Acid Cycle &amp; Electron Transport Chain
           </h2>
           <p className="mb-3">
             Pyruvate enters the mitochondrial matrix via active transport where it is oxidized to Acetyl-CoA. Through subsequent catalytic steps involving citrate synthase and alpha-ketoglutarate dehydrogenase, electrons are transferred to NAD+ and FAD coenzymes.

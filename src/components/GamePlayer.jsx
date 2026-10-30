@@ -10,7 +10,8 @@ import {
   HelpCircle,
   ThumbsUp,
   Share2,
-  Check
+  Check,
+  AlertOctagon
 } from 'lucide-react';
 import { playUiSound } from '../utils/audio.js';
 
@@ -21,6 +22,9 @@ export const GamePlayer = ({
   onBack,
   onSelectNextGame,
   allGames,
+  panicUrl,
+  panicKey,
+  onTriggerPanic,
 }) => {
   const containerRef = useRef(null);
   const iframeRef = useRef(null);
@@ -169,6 +173,26 @@ export const GamePlayer = ({
               <span className="hidden sm:inline">Pop Out</span>
             </button>
 
+            {panicUrl && (
+              <a
+                href={panicUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => {
+                  playUiSound('action');
+                  if (document.fullscreenElement) {
+                    document.exitFullscreen().catch(() => {});
+                  }
+                  onTriggerPanic();
+                }}
+                title={`Panic Button: Opens new tab and disguises this screen (${panicKey})`}
+                className="p-1.5 bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/30 text-rose-300 rounded-md transition-colors flex items-center gap-1 font-medium cursor-pointer"
+              >
+                <AlertOctagon className="w-3.5 h-3.5 text-rose-400" />
+                <span className="hidden sm:inline">Panic (New Tab)</span>
+              </a>
+            )}
+
             <button
               onClick={handleToggleFullscreen}
               title={isFullscreen ? "Exit Fullscreen" : "Fullscreen"}
@@ -198,8 +222,8 @@ export const GamePlayer = ({
               ref={iframeRef}
               title={game.title}
               src={game.content}
-              sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
-              allow="fullscreen"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
+              allowFullScreen
               className="w-full h-full border-none"
               tabIndex={0}
             />

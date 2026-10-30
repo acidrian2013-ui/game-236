@@ -20,7 +20,7 @@ import { JsonModal } from './components/JsonModal.jsx';
 import { CloakModal } from './components/CloakModal.jsx';
 import { PanicOverlay } from './components/PanicOverlay.jsx';
 import { playUiSound, isSoundEnabled, setSoundEnabled } from './utils/audio.js';
-import { applyCloakProfile, getActiveCloakId } from './utils/cloak.js';
+import { applyCloakProfile, getActiveCloakId, getPanicUrl, setPanicUrl, openPanicTab } from './utils/cloak.js';
 
 export default function App() {
   // 1. Library State
@@ -71,13 +71,14 @@ export default function App() {
   // 4. Favorites State
   const [favorites, setFavorites] = useState(() => {
     const saved = localStorage.getItem('unblocked_favorites');
-    return saved ? JSON.parse(saved) : ['asteroids-classic', 'game-2048'];
+    return saved ? JSON.parse(saved) : [];
   });
 
   // 5. Cloaking & Panic State
   const [panicKey, setPanicKey] = useState(() => {
     return localStorage.getItem('unblocked_panic_key') || 'Escape';
   });
+  const [panicUrl, setPanicUrlState] = useState(() => getPanicUrl());
   const [isPanicked, setIsPanicked] = useState(false);
 
   // 6. Sound State
@@ -106,7 +107,12 @@ export default function App() {
       // Check panic key
       if (e.code === panicKey) {
         e.preventDefault();
-        setIsPanicked(prev => !prev);
+        if (!isPanicked) {
+          openPanicTab(panicUrl);
+          setIsPanicked(true);
+        } else {
+          setIsPanicked(false);
+        }
         return;
       }
 
@@ -120,7 +126,7 @@ export default function App() {
 
     window.addEventListener('keydown', handleGlobalKeyDown);
     return () => window.removeEventListener('keydown', handleGlobalKeyDown);
-  }, [panicKey, activeGame]);
+  }, [panicKey, panicUrl, isPanicked, activeGame]);
 
   // Handle Favorites Toggle
   const handleToggleFavorite = (e, id) => {
@@ -152,6 +158,25 @@ export default function App() {
     setActiveCategory('All');
   };
 
+  // Handle Clear All Games
+  const handleClearGames = () => {
+    setGames([]);
+    localStorage.removeItem('unblocked_custom_games');
+    localStorage.removeItem('unblocked_favorites');
+    setFavorites([]);
+    setActiveGame(null);
+  };
+
+  // Handle Panic
+  const handleTriggerPanic = () => {
+    setIsPanicked(true);
+  };
+
+  const handleSetPanicUrl = (url) => {
+    setPanicUrlState(url);
+    setPanicUrl(url);
+  };
+
   // Handle Sound Toggle
   const handleToggleSound = () => {
     const next = !isSoundOn;
@@ -175,7 +200,10 @@ export default function App() {
         if (activeCategory === 'Favorites') {
           if (!favorites.includes(game.id)) return false;
         } else if (activeCategory !== 'All') {
-          if (game.category !== activeCategory) return false;
+          const catLower = activeCategory.toLowerCase();
+          const matchCat = game.category?.toLowerCase() === catLower;
+          const matchTag = Array.isArray(game.tags) && game.tags.some(t => t.toLowerCase() === catLower);
+          if (!matchCat && !matchTag) return false;
         }
 
         // Search query
@@ -203,7 +231,11 @@ export default function App() {
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-sky-500/30 selection:text-sky-200">
       {/* Panic Emergency Disguise Screen */}
       {isPanicked && (
-        <PanicOverlay onDismiss={() => setIsPanicked(false)} panicKey={panicKey} />
+        <PanicOverlay
+          onDismiss={() => setIsPanicked(false)}
+          panicKey={panicKey}
+          panicUrl={panicUrl}
+        />
       )}
 
       {/* 3-Zone Top Navigation Bar */}
@@ -217,6 +249,9 @@ export default function App() {
         activeCategory={activeCategory}
         isSoundOn={isSoundOn}
         onToggleSound={handleToggleSound}
+        panicUrl={panicUrl}
+        panicKey={panicKey}
+        onTriggerPanic={handleTriggerPanic}
       />
 
       {/* Main Content Area */}
@@ -229,40 +264,43 @@ export default function App() {
             onBack={() => setActiveGame(null)}
             onSelectNextGame={(game) => setActiveGame(game)}
             allGames={games}
+            panicUrl={panicUrl}
+            panicKey={panicKey}
+            onTriggerPanic={handleTriggerPanic}
           />
         ) : (
           <div className="w-full max-w-6xl mx-auto px-4 md:px-6 py-8 flex flex-col gap-10">
             {/* Hero / Spotlight Header */}
-            <section className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-slate-900 via-slate-900 to-slate-950 border border-slate-800/80 p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-8">
+            <section className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#1a1a2e] via-slate-900 to-[#0a0a0a] border border-purple-500/20 p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-8 shadow-2xl">
               {/* Subtle background glow */}
-              <div className="absolute top-0 right-0 w-96 h-96 bg-sky-500/10 rounded-full blur-3xl pointer-events-none" />
+              <div className="absolute top-0 right-0 w-96 h-96 bg-purple-600/15 rounded-full blur-3xl pointer-events-none" />
 
               <div className="relative z-10 max-w-xl flex flex-col gap-3">
-                <div className="text-xs font-semibold tracking-wider uppercase text-sky-400 flex items-center gap-1.5">
+                <div className="text-xs font-semibold tracking-wider uppercase text-purple-400 flex items-center gap-1.5">
                   <Flame className="w-4 h-4 text-amber-400" />
-                  <span>Unblocked Arcade &bull; Stored in JSON</span>
+                  <span>Space Arcade &bull; 275+ Games Scraped</span>
                 </div>
 
                 <h1 className="font-display text-2xl md:text-4xl font-extrabold text-white tracking-tight leading-tight text-balance">
-                  High-speed retro classics and arcade hits ready to play.
+                  Over 275+ unblocked games, retro hits &amp; classics.
                 </h1>
 
                 <p className="text-sm text-slate-400 leading-relaxed max-w-lg">
-                  Every game is stored directly in <span className="font-mono text-slate-200">games.json</span> with embedded HTML, JavaScript, and CSS iframes. Fast, offline-capable, and completely unrestricted.
+                  Every game imported directly from <span className="font-mono text-purple-300">space.prosysaudit.ro</span> with authentic thumbnail covers, high-speed iframe streaming, tab cloaking, and emergency panic button.
                 </p>
 
                 {/* Clean unboxed proof metrics (NO PILLS) */}
                 <div className="pt-3 flex items-center gap-4 text-xs text-slate-400">
                   <div className="tabular-nums">
-                    <strong className="text-slate-200 font-semibold">{games.length}</strong> Games Loaded
+                    <strong className="text-white font-semibold">{games.length}</strong> Games Loaded
                   </div>
                   <span aria-hidden="true" className="text-slate-700">&bull;</span>
                   <div>
-                    <strong className="text-slate-200 font-semibold">100%</strong> Offline HTML5
+                    <strong className="text-white font-semibold">100%</strong> Unrestricted
                   </div>
                   <span aria-hidden="true" className="text-slate-700">&bull;</span>
                   <div>
-                    <strong className="text-slate-200 font-semibold">Zero</strong> Tracking
+                    <strong className="text-white font-semibold">Instant</strong> Play
                   </div>
                 </div>
               </div>
@@ -271,14 +309,14 @@ export default function App() {
               {featuredGame && (
                 <div 
                   onClick={() => { playUiSound('action'); setActiveGame(featuredGame); }}
-                  className="relative z-10 w-full md:w-80 bg-slate-950/70 border border-slate-800 hover:border-sky-500/60 rounded-xl p-5 cursor-pointer group transition-all duration-200 shadow-xl"
+                  className="relative z-10 w-full md:w-80 bg-slate-950/80 border border-slate-800 hover:border-purple-500/60 rounded-xl p-5 cursor-pointer group transition-all duration-200 shadow-xl"
                 >
                   <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-2 flex items-center justify-between">
-                    <span>Spotlight Game</span>
-                    <span className="text-sky-400">★ {featuredGame.rating}</span>
+                    <span>Spotlight Title</span>
+                    <span className="text-amber-400">★ {featuredGame.rating}</span>
                   </div>
 
-                  <h3 className="font-display font-bold text-lg text-white group-hover:text-sky-300 transition-colors">
+                  <h3 className="font-display font-bold text-lg text-white group-hover:text-purple-300 transition-colors">
                     {featuredGame.title}
                   </h3>
 
@@ -288,7 +326,7 @@ export default function App() {
 
                   <div className="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between text-xs">
                     <span className="text-slate-400">{featuredGame.category}</span>
-                    <span className="text-sky-400 font-semibold flex items-center gap-1 group-hover:translate-x-1 transition-transform">
+                    <span className="text-purple-400 font-semibold flex items-center gap-1 group-hover:translate-x-1 transition-transform">
                       Play Now <ArrowRight className="w-3.5 h-3.5" />
                     </span>
                   </div>
@@ -300,7 +338,7 @@ export default function App() {
             <section className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
               {/* Category Segmented Controls (Interactive Functional Buttons) */}
               <div className="flex items-center gap-1 p-1 bg-slate-900 border border-slate-800/80 rounded-xl overflow-x-auto scrollbar-none">
-                {['All', 'Arcade', 'Action', 'Retro', 'Puzzle', 'Strategy', 'Favorites'].map((cat) => {
+                {['All', 'Popular', 'Multiplayer', 'Arcade', 'Horror', 'Emulator', 'Media', 'Favorites'].map((cat) => {
                   const isActive = activeCategory === cat;
                   return (
                     <button
@@ -308,7 +346,7 @@ export default function App() {
                       onClick={() => { playUiSound('click'); setActiveCategory(cat); }}
                       className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors whitespace-nowrap shrink-0 ${
                         isActive
-                          ? 'bg-sky-400 text-slate-950 shadow-sm'
+                          ? 'bg-purple-500 text-white font-bold shadow-sm'
                           : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
                       }`}
                     >
@@ -327,7 +365,7 @@ export default function App() {
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Search games... (Press /)"
+                    placeholder="Search 275+ unblocked games... (Press /)"
                     className="w-full pl-9 pr-8 py-1.5 bg-slate-900 border border-slate-800 focus:border-sky-500 rounded-xl text-xs text-white placeholder-slate-500 outline-none transition-colors"
                   />
                   {searchQuery && (
@@ -373,16 +411,28 @@ export default function App() {
               {filteredGames.length === 0 ? (
                 <div className="py-16 text-center bg-slate-900/40 border border-slate-800/80 rounded-2xl flex flex-col items-center justify-center gap-3">
                   <Gamepad2 className="w-10 h-10 text-slate-600" />
-                  <div className="text-base font-semibold text-slate-300">No games matched your criteria</div>
+                  <div className="text-base font-semibold text-slate-300">
+                    {games.length === 0 ? 'Your game library is empty' : 'No games matched your criteria'}
+                  </div>
                   <p className="text-xs text-slate-500 max-w-sm">
-                    Try adjusting your search terms, choosing a different category, or adding a custom game to the JSON library.
+                    {games.length === 0
+                      ? 'All default games have been removed. Add your custom HTML/JS/CSS game or import a games.json file to get started.'
+                      : 'Try adjusting your search terms, choosing a different category, or adding a new game.'}
                   </p>
-                  <button
-                    onClick={() => { playUiSound('action'); setIsAddModalOpen(true); }}
-                    className="mt-2 px-4 py-2 bg-sky-400 text-slate-950 text-xs font-bold rounded-lg hover:bg-sky-300 transition-colors"
-                  >
-                    Embed a Custom Game
-                  </button>
+                  <div className="flex items-center gap-3 mt-2">
+                    <button
+                      onClick={() => { playUiSound('action'); setIsAddModalOpen(true); }}
+                      className="px-4 py-2 bg-sky-400 text-slate-950 text-xs font-bold rounded-lg hover:bg-sky-300 transition-colors"
+                    >
+                      Embed Custom Game
+                    </button>
+                    <button
+                      onClick={() => { playUiSound('click'); setIsJsonModalOpen(true); }}
+                      className="px-4 py-2 bg-slate-800 text-slate-300 text-xs font-semibold rounded-lg hover:bg-slate-700 transition-colors"
+                    >
+                      Import games.json
+                    </button>
+                  </div>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -446,6 +496,7 @@ export default function App() {
         onClose={() => setIsJsonModalOpen(false)}
         games={games}
         onImportGames={handleImportGames}
+        onClearGames={handleClearGames}
       />
 
       <CloakModal
@@ -457,6 +508,8 @@ export default function App() {
           setPanicKey(key);
           localStorage.setItem('unblocked_panic_key', key);
         }}
+        panicUrl={panicUrl}
+        onSetPanicUrl={handleSetPanicUrl}
       />
     </div>
   );

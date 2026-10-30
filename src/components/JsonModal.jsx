@@ -7,6 +7,7 @@ export const JsonModal = ({
   onClose,
   games,
   onImportGames,
+  onClearGames,
 }) => {
   const [copied, setCopied] = useState(false);
   const [importStatus, setImportStatus] = useState(null);
@@ -92,9 +93,9 @@ export const JsonModal = ({
             <span className="text-lg font-bold text-white font-mono">{games.length}</span>
           </div>
           <div className="p-3 bg-slate-950 rounded-xl border border-slate-800">
-            <span className="text-slate-400 block">Embedded HTML/JS</span>
-            <span className="text-lg font-bold text-sky-400 font-mono">
-              {games.filter(g => g.type === 'srcdoc').length}
+            <span className="text-slate-400 block">Unblocked Iframes</span>
+            <span className="text-lg font-bold text-purple-400 font-mono">
+              {games.filter(g => g.type === 'url').length}
             </span>
           </div>
           <div className="p-3 bg-slate-950 rounded-xl border border-slate-800">
@@ -116,16 +117,32 @@ export const JsonModal = ({
 
         {/* Actions Deck */}
         <div className="flex items-center justify-between pt-2 border-t border-slate-800">
-          <label className="cursor-pointer flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-lg transition-colors">
-            <Upload className="w-3.5 h-3.5" />
-            <span>Upload games.json</span>
-            <input
-              type="file"
-              accept=".json,application/json"
-              onChange={handleFileUpload}
-              className="hidden"
-            />
-          </label>
+          <div className="flex items-center gap-2">
+            <label className="cursor-pointer flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-lg transition-colors">
+              <Upload className="w-3.5 h-3.5" />
+              <span>Upload games.json</span>
+              <input
+                type="file"
+                accept=".json,application/json"
+                onChange={handleFileUpload}
+                className="hidden"
+              />
+            </label>
+            {games.length > 0 && onClearGames && (
+              <button
+                type="button"
+                onClick={() => {
+                  playUiSound('action');
+                  onClearGames();
+                  setImportStatus('All games removed.');
+                  setTimeout(() => setImportStatus(null), 3000);
+                }}
+                className="px-2.5 py-1.5 text-xs text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 rounded-lg transition-colors font-medium"
+              >
+                Clear All
+              </button>
+            )}
+          </div>
 
           <div className="flex items-center gap-2">
             <button

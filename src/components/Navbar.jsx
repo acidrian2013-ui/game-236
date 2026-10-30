@@ -1,5 +1,5 @@
 import React from 'react';
-import { Gamepad2, Shuffle, ShieldAlert, Code2, PlusCircle, Volume2, VolumeX } from 'lucide-react';
+import { Gamepad2, Shuffle, ShieldAlert, Code2, PlusCircle, Volume2, VolumeX, AlertOctagon } from 'lucide-react';
 import { playUiSound } from '../utils/audio.js';
 
 export const Navbar = ({
@@ -12,6 +12,9 @@ export const Navbar = ({
   activeCategory,
   isSoundOn,
   onToggleSound,
+  panicUrl,
+  panicKey,
+  onTriggerPanic,
 }) => {
   return (
     <header className="sticky top-0 z-40 bg-slate-950/90 backdrop-blur-md border-b border-slate-800/80 px-4 md:px-8 py-3.5 flex items-center justify-between gap-8">
@@ -20,11 +23,11 @@ export const Navbar = ({
         onClick={() => { playUiSound('click'); onBackToHome(); }}
         className="cursor-pointer flex items-center gap-2.5 whitespace-nowrap shrink-0 group"
       >
-        <div className="w-8 h-8 rounded-lg bg-sky-500/10 border border-sky-500/30 flex items-center justify-center text-sky-400 group-hover:border-sky-400 transition-colors">
+        <div className="w-8 h-8 rounded-lg bg-purple-500/10 border border-purple-500/30 flex items-center justify-center text-purple-400 group-hover:border-purple-400 transition-colors">
           <Gamepad2 className="w-4 h-4" />
         </div>
-        <span className="font-display text-lg font-bold tracking-tight text-white group-hover:text-sky-300 transition-colors">
-          Nexus Arcade
+        <span className="font-display text-lg font-bold tracking-tight text-white group-hover:text-purple-300 transition-colors">
+          Nexus Space
         </span>
       </div>
 
@@ -65,8 +68,23 @@ export const Navbar = ({
         </button>
       </nav>
 
-      {/* Zone 3: 1 primary action */}
-      <div className="flex items-center gap-3 shrink-0">
+      {/* Zone 3: Actions + Panic Button */}
+      <div className="flex items-center gap-2.5 sm:gap-3 shrink-0">
+        <a
+          href={panicUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={() => {
+            playUiSound('action');
+            onTriggerPanic();
+          }}
+          title={`Panic: Open in new tab and disguise this page (${panicKey})`}
+          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-rose-300 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 rounded-lg transition-colors whitespace-nowrap shrink-0 shadow-sm shadow-rose-500/10 active:scale-95 cursor-pointer"
+        >
+          <AlertOctagon className="w-3.5 h-3.5 text-rose-400" />
+          <span>Panic (New Tab)</span>
+        </a>
+
         <button
           onClick={onToggleSound}
           title={isSoundOn ? 'Mute Sound FX' : 'Enable Sound FX'}
@@ -78,10 +96,10 @@ export const Navbar = ({
 
         <button
           onClick={() => { playUiSound('action'); onRandomGame(); }}
-          className="flex items-center gap-2 px-3.5 py-1.5 text-xs font-semibold text-slate-900 bg-sky-400 hover:bg-sky-300 rounded-lg transition-colors whitespace-nowrap shrink-0 shadow-sm shadow-sky-500/20 active:scale-95"
+          className="hidden sm:flex items-center gap-2 px-3.5 py-1.5 text-xs font-semibold text-slate-900 bg-sky-400 hover:bg-sky-300 rounded-lg transition-colors whitespace-nowrap shrink-0 shadow-sm shadow-sky-500/20 active:scale-95"
         >
           <Shuffle className="w-3.5 h-3.5" />
-          <span>Random Game</span>
+          <span>Random</span>
         </button>
       </div>
     </header>
