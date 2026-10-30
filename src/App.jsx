@@ -9,12 +9,15 @@ import {
   X,
   Gamepad2,
   Flame,
-  ArrowRight
+  ArrowRight,
+  Film
 } from 'lucide-react';
 import { DEFAULT_GAMES } from './data/defaultGames.js';
+import { DEFAULT_MOVIES } from './data/defaultMovies.js';
 import { Navbar } from './components/Navbar.jsx';
 import { GameCard } from './components/GameCard.jsx';
 import { GamePlayer } from './components/GamePlayer.jsx';
+import { MoviesView } from './components/MoviesView.jsx';
 import { AddGameModal } from './components/AddGameModal.jsx';
 import { JsonModal } from './components/JsonModal.jsx';
 import { CloakModal } from './components/CloakModal.jsx';
@@ -81,10 +84,25 @@ export default function App() {
   const [panicUrl, setPanicUrlState] = useState(() => getPanicUrl());
   const [isPanicked, setIsPanicked] = useState(false);
 
-  // 6. Sound State
+  // 6. Navigation View State ('games' | 'movies')
+  const [currentView, setCurrentView] = useState('games');
+  const [movies, setMovies] = useState(() => {
+    const saved = localStorage.getItem('unblocked_custom_movies');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          return [...parsed, ...DEFAULT_MOVIES];
+        }
+      } catch (e) {}
+    }
+    return DEFAULT_MOVIES;
+  });
+
+  // 7. Sound State
   const [isSoundOn, setIsSoundOn] = useState(() => isSoundEnabled());
 
-  // 7. Modals State
+  // 8. Modals State
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isJsonModalOpen, setIsJsonModalOpen] = useState(false);
   const [isCloakModalOpen, setIsCloakModalOpen] = useState(false);
@@ -177,6 +195,16 @@ export default function App() {
     setPanicUrl(url);
   };
 
+  // Handle Add Custom Movie
+  const handleAddMovie = (newMovie) => {
+    setMovies(prev => {
+      const updated = [newMovie, ...prev];
+      const customOnly = updated.filter(m => m.id.startsWith('movie-') && !DEFAULT_MOVIES.some(d => d.id === m.id));
+      localStorage.setItem('unblocked_custom_movies', JSON.stringify(customOnly));
+      return updated;
+    });
+  };
+
   // Handle Sound Toggle
   const handleToggleSound = () => {
     const next = !isSoundOn;
@@ -240,12 +268,26 @@ export default function App() {
 
       {/* 3-Zone Top Navigation Bar */}
       <Navbar
-        onSelectCategory={setActiveCategory}
+        currentView={currentView}
+        onSelectView={(view) => {
+          setCurrentView(view);
+          setActiveGame(null);
+        }}
+        onSelectCategory={(cat) => {
+          setActiveCategory(cat);
+          setCurrentView('games');
+        }}
         onOpenAddModal={() => setIsAddModalOpen(true)}
         onOpenJsonModal={() => setIsJsonModalOpen(true)}
         onOpenCloakModal={() => setIsCloakModalOpen(true)}
-        onRandomGame={handleRandomGame}
-        onBackToHome={() => setActiveGame(null)}
+        onRandomGame={() => {
+          setCurrentView('games');
+          handleRandomGame();
+        }}
+        onBackToHome={() => {
+          setCurrentView('games');
+          setActiveGame(null);
+        }}
         activeCategory={activeCategory}
         isSoundOn={isSoundOn}
         onToggleSound={handleToggleSound}
@@ -256,7 +298,16 @@ export default function App() {
 
       {/* Main Content Area */}
       <main className="flex-1 flex flex-col">
-        {activeGame ? (
+        {currentView === 'movies' ? (
+          <MoviesView
+            movies={movies}
+            onAddMovie={handleAddMovie}
+            onBackToGames={() => setCurrentView('games')}
+            panicUrl={panicUrl}
+            panicKey={panicKey}
+            onTriggerPanic={handleTriggerPanic}
+          />
+        ) : activeGame ? (
           <GamePlayer
             game={activeGame}
             isFavorite={favorites.includes(activeGame.id)}
@@ -338,7 +389,15 @@ export default function App() {
             <section className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
               {/* Category Segmented Controls (Interactive Functional Buttons) */}
               <div className="flex items-center gap-1 p-1 bg-slate-900 border border-slate-800/80 rounded-xl overflow-x-auto scrollbar-none">
-                {['All', 'Popular', 'Multiplayer', 'Arcade', 'Horror', 'Emulator', 'Media', 'Favorites'].map((cat) => {
+                <button
+                  type="button"
+                  onClick={() => { playUiSound('click'); setCurrentView('movies'); }}
+                  className="px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors whitespace-nowrap shrink-0 text-purple-300 hover:text-white bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/30 flex items-center gap-1.5 cursor-pointer"
+                >
+                  <Film className="w-3.5 h-3.5 text-purple-400" />
+                  <span>Movies</span>
+                </button>
+                {['All', 'Popular', 'Multiplayer', 'Arcade', 'Horror', 'Emulator', 'Favorites'].map((cat) => {
                   const isActive = activeCategory === cat;
                   return (
                     <button

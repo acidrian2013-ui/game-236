@@ -278,15 +278,58 @@ export const GamePlayer = ({
             </p>
           </div>
 
-          {/* Controls & Instructions Block */}
-          <div className="pt-4 border-t border-slate-800/80 flex flex-col gap-2.5">
-            <div className="flex items-center gap-2 text-xs font-semibold text-sky-400">
-              <HelpCircle className="w-3.5 h-3.5" />
-              <span>How to Play & Controls</span>
+          {/* Moves, Controls & Keybinds Block */}
+          <div className="pt-4 border-t border-slate-800/80 flex flex-col gap-3">
+            <div className="flex items-center justify-between text-xs font-semibold text-purple-400">
+              <div className="flex items-center gap-2">
+                <HelpCircle className="w-3.5 h-3.5" />
+                <span>Moves, Keybinds &amp; Controls</span>
+              </div>
+              <span className="text-[11px] text-slate-500 font-normal">Click canvas to focus keyboard</span>
             </div>
+
+            {/* Quick Keycaps Deck */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+              <div className="p-2.5 bg-slate-950/80 rounded-lg border border-slate-800/80 flex flex-col gap-1">
+                <span className="text-[10px] text-slate-400 uppercase font-semibold">Movement</span>
+                <div className="flex items-center gap-1 font-mono text-purple-300 font-semibold text-[11px]">
+                  <kbd className="px-1.5 py-0.5 bg-slate-800 rounded border border-slate-700">W</kbd>
+                  <kbd className="px-1.5 py-0.5 bg-slate-800 rounded border border-slate-700">A</kbd>
+                  <kbd className="px-1.5 py-0.5 bg-slate-800 rounded border border-slate-700">S</kbd>
+                  <kbd className="px-1.5 py-0.5 bg-slate-800 rounded border border-slate-700">D</kbd>
+                </div>
+              </div>
+
+              <div className="p-2.5 bg-slate-950/80 rounded-lg border border-slate-800/80 flex flex-col gap-1">
+                <span className="text-[10px] text-slate-400 uppercase font-semibold">Directional</span>
+                <div className="flex items-center gap-1 font-mono text-purple-300 font-semibold text-[11px]">
+                  <kbd className="px-1.5 py-0.5 bg-slate-800 rounded border border-slate-700">▲</kbd>
+                  <kbd className="px-1.5 py-0.5 bg-slate-800 rounded border border-slate-700">◀</kbd>
+                  <kbd className="px-1.5 py-0.5 bg-slate-800 rounded border border-slate-700">▼</kbd>
+                  <kbd className="px-1.5 py-0.5 bg-slate-800 rounded border border-slate-700">▶</kbd>
+                </div>
+              </div>
+
+              <div className="p-2.5 bg-slate-950/80 rounded-lg border border-slate-800/80 flex flex-col gap-1">
+                <span className="text-[10px] text-slate-400 uppercase font-semibold">Action / Jump</span>
+                <div className="flex items-center gap-1 font-mono text-purple-300 font-semibold text-[11px]">
+                  <kbd className="px-2 py-0.5 bg-slate-800 rounded border border-slate-700">Space</kbd>
+                  <kbd className="px-1.5 py-0.5 bg-slate-800 rounded border border-slate-700">Shift</kbd>
+                </div>
+              </div>
+
+              <div className="p-2.5 bg-slate-950/80 rounded-lg border border-slate-800/80 flex flex-col gap-1">
+                <span className="text-[10px] text-slate-400 uppercase font-semibold">Interact / Aim</span>
+                <div className="flex items-center gap-1 font-mono text-purple-300 font-semibold text-[11px]">
+                  <kbd className="px-1.5 py-0.5 bg-slate-800 rounded border border-slate-700">Mouse</kbd>
+                  <kbd className="px-1.5 py-0.5 bg-slate-800 rounded border border-slate-700">Click</kbd>
+                </div>
+              </div>
+            </div>
+
             <div className="text-xs text-slate-400 bg-slate-950/60 p-3 rounded-lg border border-slate-800/60 font-mono leading-relaxed">
-              <div><strong className="text-slate-200">Controls:</strong> {game.controls}</div>
-              <div className="mt-1"><strong className="text-slate-200">Objective:</strong> {game.instructions}</div>
+              <div><strong className="text-slate-200">Specific Controls:</strong> {game.controls || 'WASD / Arrow Keys to move, Space/Click to action'}</div>
+              <div className="mt-1"><strong className="text-slate-200">Objective / Moves:</strong> {game.instructions || 'Follow in-game prompts to progress through stages.'}</div>
             </div>
           </div>
         </div>
